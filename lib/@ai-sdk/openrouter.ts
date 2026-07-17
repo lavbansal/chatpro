@@ -22,7 +22,7 @@ export function openrouter(modelId: string): LanguageModelV1 {
         },
         body: JSON.stringify({
           model: modelId,
-          messages: options.prompt as any,
+          messages: options.prompt,
           stream: true,
         }),
       });
