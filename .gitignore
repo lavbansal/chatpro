@@ -44,3 +44,5 @@ yarn-error.log*
 .idea/
 .vscode/
 *.swp
+.env*
+!.env.example

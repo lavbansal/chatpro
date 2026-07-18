@@ -11,6 +11,7 @@ A ChatGPT-style chat interface built with [assistant-ui](https://github.com/assi
 - Light/dark mode toggle in the header (follows the system theme by default)
 - Collapsible sidebar, thread list, and Markdown rendering (GitHub-flavored)
 - Server-side chat endpoint with request validation and clear error messages surfaced in the UI
+- Optional access-code gate (`ACCESS_CODE`) that protects the chat endpoint from unauthorized credit use until real auth is added
 - Tailwind CSS v4 with shadcn-style UI primitives
 
 ## Tech stack
@@ -37,6 +38,7 @@ cp .env.example .env.local
 ```
 
 ```
+ACCESS_CODE=...                  # optional, gates the chat endpoint (see below)
 OPENAI_API_KEY=sk-...            # required (default models)
 GOOGLE_GENERATIVE_AI_API_KEY=... # optional, enables Gemini models
 OPENROUTER_API_KEY=...           # optional, enables OpenRouter models
@@ -44,6 +46,14 @@ TAVILY_API_KEY=tvly-...          # optional, enables the webSearch tool
 ```
 
 Models whose key is missing appear disabled in the model picker. Without `TAVILY_API_KEY` the assistant simply has no web search tool; everything else works.
+
+### Access gate
+
+Until real authentication is added, `ACCESS_CODE` protects your AI credits with a single shared secret. When it is set, visitors see an unlock screen and `/api/chat` rejects any request without a valid session cookie, so nobody can spend credits by hitting the endpoint directly. The check runs in `middleware.ts`; the code never ships to the browser.
+
+- Leave `ACCESS_CODE` unset to disable the gate (handy for local dev).
+- Set it in production (e.g. `openssl rand -base64 24`) and share the value only with people you trust.
+- Unlocking sets an httpOnly cookie that lasts 30 days.
 
 ### 3. Run the dev server
 
