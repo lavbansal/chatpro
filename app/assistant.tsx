@@ -1,24 +1,33 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AssistantRuntimeProvider,
   CompositeAttachmentAdapter,
   SimpleImageAttachmentAdapter,
   SimpleTextAttachmentAdapter,
 } from "@assistant-ui/react";
-import { useChatRuntime } from "@assistant-ui/react-ai-sdk";
+import {
+  AssistantChatTransport,
+  useChatRuntime,
+} from "@assistant-ui/react-ai-sdk";
 import { Thread } from "@/components/assistant-ui/thread";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { ModelPicker } from "@/components/model-picker";
-import { DEFAULT_MODEL_ID } from "@/lib/models";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { DEFAULT_MODEL_ID, findChatModel } from "@/lib/models";
 
 const MODEL_STORAGE_KEY = "chatpro:model";
 
 export const Assistant = () => {
   const [modelId, setModelId] = useState(DEFAULT_MODEL_ID);
+
+  // The transport reads the model id through a ref so switching models does
+  // not recreate the transport (which would drop the ongoing conversation).
+  const modelIdRef = useRef(modelId);
+  modelIdRef.current = modelId;
 
   useEffect(() => {
     const stored = localStorage.getItem(MODEL_STORAGE_KEY);
@@ -30,18 +39,27 @@ export const Assistant = () => {
     localStorage.setItem(MODEL_STORAGE_KEY, id);
   };
 
-  const attachments = useMemo(
+  const transport = useMemo(
     () =>
-      new CompositeAttachmentAdapter([
-        new SimpleImageAttachmentAdapter(),
-        new SimpleTextAttachmentAdapter(),
-      ]),
+      new AssistantChatTransport({
+        api: "/api/chat",
+        body: () => ({ model: modelIdRef.current }),
+      }),
     [],
   );
 
+  const supportsImages = findChatModel(modelId)?.supportsImages ?? false;
+  const attachments = useMemo(
+    () =>
+      new CompositeAttachmentAdapter([
+        ...(supportsImages ? [new SimpleImageAttachmentAdapter()] : []),
+        new SimpleTextAttachmentAdapter(),
+      ]),
+    [supportsImages],
+  );
+
   const runtime = useChatRuntime({
-    api: "/api/chat",
-    body: { model: modelId },
+    transport,
     adapters: { attachments },
   });
 
@@ -59,6 +77,7 @@ export const Assistant = () => {
               onChange={selectModel}
               className="ml-auto"
             />
+            <ThemeToggle />
           </header>
           <Thread />
         </SidebarInset>

@@ -4,6 +4,7 @@ export type ChatModel = {
   id: string;
   label: string;
   provider: ModelProvider;
+  supportsImages: boolean;
 };
 
 export const PROVIDER_ENV_KEYS: Record<ModelProvider, string> = {
@@ -13,13 +14,24 @@ export const PROVIDER_ENV_KEYS: Record<ModelProvider, string> = {
 };
 
 export const CHAT_MODELS: ChatModel[] = [
-  { id: "gpt-4o-mini", label: "GPT-4o mini", provider: "openai" },
-  { id: "gpt-4o", label: "GPT-4o", provider: "openai" },
-  { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash", provider: "google" },
+  {
+    id: "gpt-4o-mini",
+    label: "GPT-4o mini",
+    provider: "openai",
+    supportsImages: true,
+  },
+  { id: "gpt-4o", label: "GPT-4o", provider: "openai", supportsImages: true },
+  {
+    id: "gemini-2.0-flash",
+    label: "Gemini 2.0 Flash",
+    provider: "google",
+    supportsImages: true,
+  },
   {
     id: "meta-llama/llama-3.3-70b-instruct",
     label: "Llama 3.3 70B (OpenRouter)",
     provider: "openrouter",
+    supportsImages: false,
   },
 ];
 

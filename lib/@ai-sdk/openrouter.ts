@@ -1,8 +1,9 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import type { LanguageModelV1 } from "ai";
+import type { LanguageModel } from "ai";
 
-// OpenRouter exposes an OpenAI-compatible API, so we reuse the OpenAI
-// provider with a custom base URL instead of hand-rolling a LanguageModelV1.
+// OpenRouter exposes an OpenAI-compatible chat completions API, so we reuse
+// the OpenAI provider with a custom base URL instead of adding a dedicated
+// provider package.
 const provider = createOpenAI({
   name: "openrouter",
   baseURL: "https://openrouter.ai/api/v1",
@@ -13,6 +14,6 @@ const provider = createOpenAI({
   },
 });
 
-export function openrouter(modelId: string): LanguageModelV1 {
+export function openrouter(modelId: string): LanguageModel {
   return provider.chat(modelId);
 }
