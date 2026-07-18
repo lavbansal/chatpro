@@ -5,9 +5,11 @@ A ChatGPT-style chat interface built with [assistant-ui](https://github.com/assi
 ## Features
 
 - Streaming chat UI powered by `@assistant-ui/react`
+- Model picker in the header: OpenAI (GPT-4o mini / GPT-4o), Google Gemini, and OpenRouter models, with unavailable models greyed out until their API key is set
+- Tool calling: a built-in `getWeather` tool backed by the free Open-Meteo API (no key required)
+- Image and text-file attachments in the composer (images are sent to multimodal models)
 - Collapsible sidebar, thread list, and Markdown rendering (GitHub-flavored)
-- Server-side chat endpoint using the Vercel AI SDK
-- OpenAI (`gpt-4o-mini`) by default, with a drop-in OpenRouter provider available
+- Server-side chat endpoint with request validation and clear error messages surfaced in the UI
 - Tailwind CSS v4 with shadcn-style UI primitives
 
 ## Tech stack
@@ -27,15 +29,19 @@ npm install
 
 ### 2. Configure environment variables
 
-Copy the example file and fill in your key:
+Copy the example file and fill in your key(s):
 
 ```bash
 cp .env.example .env.local
 ```
 
 ```
-OPENAI_API_KEY=sk-...
+OPENAI_API_KEY=sk-...            # required (default models)
+GOOGLE_GENERATIVE_AI_API_KEY=... # optional, enables Gemini models
+OPENROUTER_API_KEY=...           # optional, enables OpenRouter models
 ```
+
+Models whose key is missing appear disabled in the model picker.
 
 ### 3. Run the dev server
 
@@ -58,24 +64,21 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ```
 app/
-  api/chat/route.ts   # Chat endpoint (streams from the model)
-  assistant.tsx       # Chat layout: sidebar + thread
-  page.tsx            # Renders <Assistant />
-  layout.tsx          # Root layout, fonts, global styles
+  api/chat/route.ts    # Chat endpoint (validation, system prompt, tools, streaming)
+  api/models/route.ts  # Lists models and whether their API key is configured
+  assistant.tsx        # Chat layout: sidebar + thread + model picker state
+  page.tsx             # Renders <Assistant />
+  layout.tsx           # Root layout, fonts, global styles
 components/
-  assistant-ui/       # Thread, message, and markdown components
-  ui/                 # shadcn-style primitives (button, sidebar, ...)
+  assistant-ui/        # Thread, message, attachment, and markdown components
+  model-picker.tsx     # Header model dropdown
+  ui/                  # shadcn-style primitives (button, sidebar, ...)
 lib/
-  utils.ts            # cn() and helpers
-  @ai-sdk/openrouter.ts  # Optional OpenRouter provider
+  models.ts            # Model registry shared by client and server
+  utils.ts             # cn() and helpers
+  @ai-sdk/openrouter.ts  # OpenRouter provider (OpenAI-compatible API)
 ```
 
-## Switching the model
+## Adding or changing models
 
-The default model is set in [`app/api/chat/route.ts`](app/api/chat/route.ts):
-
-```ts
-model: openai("gpt-4o-mini"),
-```
-
-To use OpenRouter instead, set `OPENROUTER_API_KEY` in `.env.local`, then swap the import for the provider in `lib/@ai-sdk/openrouter.ts`.
+Edit the registry in [`lib/models.ts`](lib/models.ts). Each entry maps a model id to a provider (`openai`, `google`, or `openrouter`); the provider determines which environment variable must be set for the model to be selectable.

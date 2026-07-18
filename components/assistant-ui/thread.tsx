@@ -2,6 +2,7 @@ import {
   ActionBarPrimitive,
   BranchPickerPrimitive,
   ComposerPrimitive,
+  ErrorPrimitive,
   MessagePrimitive,
   ThreadPrimitive,
 } from "@assistant-ui/react";
@@ -21,6 +22,11 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { MarkdownText } from "@/components/assistant-ui/markdown-text";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
+import {
+  ComposerAddAttachment,
+  ComposerAttachments,
+  UserMessageAttachments,
+} from "@/components/assistant-ui/attachment";
 import { ToolFallback } from "./tool-fallback";
 
 export const Thread: FC = () => {
@@ -97,12 +103,12 @@ const ThreadWelcomeSuggestions: FC = () => {
       </ThreadPrimitive.Suggestion>
       <ThreadPrimitive.Suggestion
         className="hover:bg-muted/80 flex max-w-sm grow basis-0 flex-col items-center justify-center rounded-lg border p-3 transition-colors ease-in"
-        prompt="What is assistant-ui?"
+        prompt="Draft a short, friendly email asking for a project status update"
         method="replace"
         autoSend
       >
         <span className="line-clamp-2 text-ellipsis text-sm font-semibold">
-          What is assistant-ui?
+          Draft an email asking for a status update
         </span>
       </ThreadPrimitive.Suggestion>
     </div>
@@ -111,7 +117,9 @@ const ThreadWelcomeSuggestions: FC = () => {
 
 const Composer: FC = () => {
   return (
-    <ComposerPrimitive.Root className="focus-within:border-ring/20 flex w-full flex-wrap items-end rounded-lg border bg-inherit px-2.5 shadow-sm transition-colors ease-in">
+    <ComposerPrimitive.Root className="focus-within:border-ring/20 flex w-full flex-wrap items-end rounded-lg border bg-inherit px-2.5 pt-2.5 shadow-sm transition-colors ease-in">
+      <ComposerAttachments />
+      <ComposerAddAttachment />
       <ComposerPrimitive.Input
         rows={1}
         autoFocus
@@ -155,6 +163,8 @@ const ComposerAction: FC = () => {
 const UserMessage: FC = () => {
   return (
     <MessagePrimitive.Root className="grid auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] gap-y-2 [&:where(>*)]:col-start-2 w-full max-w-[var(--thread-max-width)] py-4">
+      <UserMessageAttachments />
+
       <UserActionBar />
 
       <div className="bg-muted text-foreground max-w-[calc(var(--thread-max-width)*0.8)] break-words rounded-3xl px-5 py-2.5 col-start-2 row-start-2">
@@ -206,6 +216,11 @@ const AssistantMessage: FC = () => {
         <MessagePrimitive.Content
           components={{ Text: MarkdownText, tools: { Fallback: ToolFallback } }}
         />
+        <MessagePrimitive.Error>
+          <ErrorPrimitive.Root className="border-destructive bg-destructive/10 text-destructive mt-2 rounded-md border p-3 text-sm">
+            <ErrorPrimitive.Message className="line-clamp-4" />
+          </ErrorPrimitive.Root>
+        </MessagePrimitive.Error>
       </div>
 
       <AssistantActionBar />
